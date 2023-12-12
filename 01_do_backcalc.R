@@ -113,7 +113,7 @@ deconv <- function(prev, S, constant_prev_inc = TRUE) {
 ## READ DATA AND DECONVOLVE BY STRATA
 ########################################################################
 
-base_dir = here::here("cis-imperfect-testing/STATS18596/output")
+base_dir = here::here("data/STATS18596/")
 S = readr::read_csv(
     file.path(base_dir, "meanS.csv"),
     show_col_types = FALSE
