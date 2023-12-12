@@ -1,4 +1,5 @@
 suppressMessages(library(dplyr))
+library(ggplot2)
 library(tidyr)
 
 ########################################################################
@@ -121,8 +122,8 @@ S = readr::read_csv(
     arrange(time) |>
     pull("S")
 results = readRDS(file.path(base_dir, "predict_thin.rds")) |>
-    group_by(.draw, .group, region) |>
     mutate(
+        .by = c(.draw, .group, region),
         prevalence = expit(.predict),
         incidence = deconv(prevalence, S),
     )
@@ -156,13 +157,13 @@ plot <- expand_grid(
       tbl_prev |>
         filter(source == forward_model, date >= truncation_date) |>
         arrange(date) |>
-        `$`(prevalence)
+        pull("prevalence")
     ),
     f = list(
       tbl_survival |>
         filter(source == backward_model, time == round(time)) |>
         arrange(time) |>
-        `$`(value)
+        pull("value")
     ),
     zero = list(deconv(prevalence, f)),
     constant = list(deconv(prevalence, f, TRUE)),
