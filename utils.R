@@ -44,3 +44,27 @@ group_by_strata = function(x, ...) {
   include = setdiff(all_cols, exclude)
   return(dplyr::group_by(x, !!!include))
 }
+
+load_poststrat_table = function() {
+    readr::read_csv(file.path(base_data_dir, "poststrat.csv"), show_col_types = FALSE) |>
+        dplyr::mutate(
+            region = dplyr::case_match(
+                Region_Name,
+                "North_East_England"  ~ "1_NE",
+                "North_West_England"  ~ "2_NW",
+                "Yorkshire"  ~ "3_YH",
+                "East_Midlands"  ~ "4_EM",
+                "West_Midlands"  ~ "5_WM",
+                "East_England"  ~ "6_EE",
+                "London"  ~ "7_LD",
+                "South_East_England"  ~ "8_SE",
+                "South_West_England"  ~ "9_SW",
+                .default = NA_character_
+            )
+        ) |>
+        assertr::verify(
+            !is.na(region)
+            | Region_Name %in% c("Wales", "Scotland", "Northern_Ireland")
+        ) |>
+        dplyr::filter(!is.na(region))
+}
