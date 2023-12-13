@@ -100,35 +100,33 @@ S = readr::read_csv(
 ) |>
     arrange(time) |>
     pull("S")
-prev = readRDS(file.path(base_dir, "predict_thin.rds")) |>
-  left_join(
-    readr::read_csv(
-        file.path(base_dir, "groups.csv"),
-        show_col_types = FALSE
-    ),
-    by = ".group"
-  )
+prev = load_prev()
+postrat_table = load_poststrat_table()
 
 results = prev |>
+  filter(region == "1_NE") |>
   group_by(region, sex, age_group, ethnicityg, .draw) |>
   arrange(daynr, .by_group = TRUE) |>
   mutate(
-      prevalence = expit(.predict),
-      incidence = deconv(prevalence, S),
+      incidence = deconv(prev_predict, S),
   ) |>
   ungroup()
-postrat_table = readr::read_csv(
-    file.path(base_dir, "postrat.csv"),
-    show_col_types = FALSE
-)
 
 results |>
-    filter(incidence < 0)
+    filter(incidence < 0) |>
+    summarise(n_distinct(.draw))
 
-incdence_summary = results |>
-    group_by(daynr, region, sex, age_group, ethnicityg) |>
+incidence_summary = results |>
+    group_by_strata() |>
     median_qi(incidence)
     
+incidence_summary |>
+  mutate(grouping = paste(ethnicityg, sex)) |>
+  ggplot(aes(daynr, incidence, ymin = .lower, ymax = .upper, fill = sex, colour = sex)) +
+  geom_lineribbon(alpha = 0.5) +
+  facet_grid(ethnicityg~age_group, scales = "free_y") +
+  theme(legend.position = "bottom")
+
 incdence_summary |>
   filter(sex == "Female", region == "1_NE", ethnicityg == "White") |>
     ggplot() +
