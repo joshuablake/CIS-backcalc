@@ -1,0 +1,41 @@
+---
+title: "Prevalence data"
+author: "Joshua Blake"
+date: "`r Sys.Date()`"
+---
+
+Load packages and data
+```{r load,message=FALSE}
+suppressMessages(library(dplyr))
+library(ggplot2)
+library(rlang)
+library(tidybayes)
+library(tidyr)
+source(here::here("utils.R"))
+
+prev = load_prev()
+
+# Check all columns are grouped by default
+prev |>
+  filter(.draw == 1) |>
+  group_by_strata() |>
+  summarise(n = n(), .groups = "drop") |>
+  assertr::assert(assertr::in_set(1), n)
+
+glimpse(prev)
+```
+
+Plot all combinations
+
+```{r messy-plot,fig.height=14,fig.width=10}
+prev_summary = prev |>
+  group_by_strata() |>
+  median_qi(prev_predict)
+
+prev_summary |>
+  mutate(grouping = paste(ethnicityg, sex)) |>
+  ggplot(aes(daynr, prev_predict, ymin = .lower, ymax = .upper, fill = grouping, colour = grouping)) +
+  geom_lineribbon(alpha = 0.5) +
+  facet_grid(region~age_group, scales = "free_y") +
+  theme(legend.position = "bottom")
+```
