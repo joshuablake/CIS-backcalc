@@ -47,6 +47,7 @@ group_by_strata = function(x, ...) {
 
 load_poststrat_table = function() {
     readr::read_csv(file.path(base_data_dir, "poststrat.csv"), show_col_types = FALSE) |>
+        dplyr::select(!.groups) |>
         dplyr::mutate(
             region = dplyr::case_match(
                 Region_Name,
@@ -67,4 +68,20 @@ load_poststrat_table = function() {
             | Region_Name %in% c("Wales", "Scotland", "Northern_Ireland")
         ) |>
         dplyr::filter(!is.na(region))
+}
+
+poststratify = function(data, postrat_table, col, ...) {
+    left_join(
+        data,
+        postrat_table,
+        by = c("region", "age_group", "ethnicityg" = "ethnicity", "sex")
+    ) |>
+        assertr::assert(assertr::not_na, pop) |>
+        mutate(n = {{ col }} * pop) |>
+        group_by(daynr, .draw, !!!ensyms(...)) |>
+        summarise(
+            N = sum(pop),
+            val = sum(n) / N,
+            .groups = "drop"
+        )
 }

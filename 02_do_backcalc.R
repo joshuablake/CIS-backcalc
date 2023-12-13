@@ -133,6 +133,12 @@ incdence_summary |>
     stat_lineribbon(aes(daynr, incidence, ymin = .lower, ymax = .upper, fill = ethnicityg), alpha = 0.2) +
     facet_wrap(~age_group)
 
+poststratify(results, postrat_table, incidence, region, age_group) |>
+    group_by(daynr, region, age_group) |>
+    median_qi(val) |>
+    ggplot(aes(daynr, val, ymin = .lower, ymax = .upper)) +
+    geom_lineribbon(alpha = 0.3) +
+    facet_wrap(~age_group)
 ########################################################################
 ## OLD FUNCTIONS (PROBABLY REMOVE)
 ########################################################################
