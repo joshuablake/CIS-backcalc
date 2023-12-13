@@ -1,5 +1,6 @@
 suppressMessages(library(dplyr))
 library(ggplot2)
+library(tidybayes)
 library(tidyr)
 
 ########################################################################
@@ -121,16 +122,23 @@ S = readr::read_csv(
 ) |>
     arrange(time) |>
     pull("S")
-results = readRDS(file.path(base_dir, "predict_thin.rds")) |>
-    mutate(
-        .by = c(.draw, .group, region),
-        prevalence = expit(.predict),
-        incidence = deconv(prevalence, S),
-    )
-group_lookup = readr::read_csv(
-    file.path(base_dir, "groups.csv"),
-    show_col_types = FALSE
-)
+prev = readRDS(file.path(base_dir, "predict_thin.rds")) |>
+  left_join(
+    readr::read_csv(
+        file.path(base_dir, "groups.csv"),
+        show_col_types = FALSE
+    ),
+    by = ".group"
+  )
+
+results = prev |>
+  group_by(region, sex, age_group, ethnicityg, .draw) |>
+  arrange(daynr, .by_group = TRUE) |>
+  mutate(
+      prevalence = expit(.predict),
+      incidence = deconv(prevalence, S),
+  ) |>
+  ungroup()
 postrat_table = readr::read_csv(
     file.path(base_dir, "postrat.csv"),
     show_col_types = FALSE
@@ -138,9 +146,16 @@ postrat_table = readr::read_csv(
 
 results |>
     filter(incidence < 0)
-    left_join(group_lookup, by = ".group") |>
+
+incdence_summary = results |>
+    group_by(daynr, region, sex, age_group, ethnicityg) |>
+    median_qi(incidence)
+    
+incdence_summary |>
+  filter(sex == "Female", region == "1_NE", ethnicityg == "White") |>
     ggplot() +
-    geom_line(aes(time, incidence, .))
+    stat_lineribbon(aes(daynr, incidence, ymin = .lower, ymax = .upper, fill = ethnicityg), alpha = 0.2) +
+    facet_wrap(~age_group)
 
 ########################################################################
 ## OLD FUNCTIONS (PROBABLY REMOVE)
