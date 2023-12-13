@@ -50,3 +50,10 @@ rsconnect/
 
 # Data files
 data/
+
+# Temporary plotting files
+tmp.png
+
+# Output files
+*.html
+*.pdf
