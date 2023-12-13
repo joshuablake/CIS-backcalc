@@ -2,29 +2,7 @@ suppressMessages(library(dplyr))
 library(ggplot2)
 library(tidybayes)
 library(tidyr)
-
-########################################################################
-## UTILITY FUNCTIONS
-########################################################################
-
-expit = function(x) 1 / (1 + exp(-x))
-logit = function(x) log(x) - log1p(-x)
-
-# Create a square matrix of 0s of size x size
-square_matrix_0s <- function(size) {
-  matrix(0, nrow = size, ncol = size)
-}
-
-# Pad a vector to length_out with fill
-pad_to_length <- function(vec, length_out, fill = 0) {
-  if (length(vec) >= length_out) return(vec[1:length_out])
-  c(vec, rep(fill, length_out - length(vec)))
-}
-
-# Check if mat is a lower triangular matrix
-is_lower_triangular <- function(mat) {
-  all(mat == 0 | lower.tri(mat, diag = TRUE))
-}
+source(here::here("utils.R"))
 
 ########################################################################
 ## DECONVOLUTION FUNCTIONS
