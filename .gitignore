@@ -57,3 +57,5 @@ tmp.png
 # Output files
 *.html
 *.pdf
+*.rds
+outputs/*

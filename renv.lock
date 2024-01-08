@@ -760,20 +760,6 @@
       ],
       "Hash": "8dac526a34b9eb62305d16c04cb57837"
     },
-    "pracma": {
-      "Package": "pracma",
-      "Version": "2.4.4",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "grDevices",
-        "graphics",
-        "stats",
-        "utils"
-      ],
-      "Hash": "44bc172d47d1ea0a638d9f299e321203"
-    },
     "prettyunits": {
       "Package": "prettyunits",
       "Version": "1.2.0",

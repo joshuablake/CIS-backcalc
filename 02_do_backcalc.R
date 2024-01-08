@@ -111,114 +111,21 @@ results = prev |>
   ) |>
   ungroup()
 
-results |>
-    filter(incidence < 0) |>
-    summarise(n_distinct(.draw))
+readr::write_rds(
+  results,
+  here::here("outputs/deconv.rds")
+)
 
+########################################################################
+## PLOTS
+########################################################################
 incidence_summary = results |>
     group_by_strata() |>
     median_qi(incidence)
     
-incidence_summary |>
-  mutate(grouping = paste(ethnicityg, sex)) |>
-  ggplot(aes(daynr, incidence, ymin = .lower, ymax = .upper, fill = sex, colour = sex)) +
-  geom_lineribbon(alpha = 0.5) +
-  facet_grid(ethnicityg~age_group, scales = "free_y") +
-  theme(legend.position = "bottom")
-
-incdence_summary |>
-  filter(sex == "Female", region == "1_NE", ethnicityg == "White") |>
-    ggplot() +
-    stat_lineribbon(aes(daynr, incidence, ymin = .lower, ymax = .upper, fill = ethnicityg), alpha = 0.2) +
-    facet_wrap(~age_group)
-
 poststratify(results, postrat_table, incidence, region, age_group) |>
     group_by(daynr, region, age_group) |>
     median_qi(val) |>
     ggplot(aes(daynr, val, ymin = .lower, ymax = .upper)) +
     geom_lineribbon(alpha = 0.3) +
     facet_grid(region~age_group)
-########################################################################
-## OLD FUNCTIONS (PROBABLY REMOVE)
-########################################################################
-# deconv(c(100construct_matrix_S.5, 1, 1))
-
-plot <- expand_grid(
-  forward_model = tbl_prev$source |> unique(),
-  backward_model = tbl_survival$source |> unique(),
-) |>
-  rowwise() |>
-  mutate(
-    prevalence = list(
-      tbl_prev |>
-        filter(source == forward_model, date >= truncation_date) |>
-        arrange(date) |>
-        pull("prevalence")
-    ),
-    f = list(
-      tbl_survival |>
-        filter(source == backward_model, time == round(time)) |>
-        arrange(time) |>
-        pull("value")
-    ),
-    zero = list(deconv(prevalence, f)),
-    constant = list(deconv(prevalence, f, TRUE)),
-    date = list(filter(tbl_rtm_out, date >= truncation_date)$date),
-  ) |>
-  unnest(c(zero, constant, date)) |>
-  pivot_longer(c(zero, constant), names_to = "assumption", values_to = "incidence") |>
-  # bind_rows(
-  #   tbl_prev |>
-  #     arrange(date) |>
-  #     group_by(source) |>
-  #     summarise(
-  #       forward_model = source,
-  #       backward_model = "prev / 8",
-  #       incidence = prevalence / 8,
-  #       date,
-  #       .groups = "drop"
-  #     )
-# ) |>
-ggplot(aes(x = date, y = incidence, colour = backward_model)) +
-  geom_line() +
-  facet_grid(rows = vars(forward_model), cols = vars(assumption)) +
-  geom_line(aes(x = date, y = incidence, colour = "true"), data = tbl_rtm_out) +
-  scale_colour_brewer(type = "qual", palette = "Dark2") +
-  ylim(0, 150000) +
-  labs(
-     x = "Date",
-     y = "Incidence",
-     colour = "Backwards model"
-  )
-
-if (FALSE) {
-  ggsave(
-    "/home/joshuab/COVID/ons-incidence/documents/feb-writeup/figures/deterministic-simulation-results.pdf",
-    width = 19, height = 20, units = "cm"
-  )
-}
-
-############################################################################
-
-## Creates a function S(t) that returns the probability of a positive swab t - 1 days after infection
-generate_S <- function (spec = 0, sens_curve = read_median()) {
-  times_use_sens <- seq_along(sens_curve) - 1
-  prob_swab_pos_given_inf_time <- function(t) {
-    indices <- t + 1
-    not_valid <- which(indices <= 0 | indices > length(sens_curve))
-    indices[not_valid] <- NA
-    out <- sens_curve[indices]
-    out[not_valid] <- spec
-    return(out)
-  }
-}
-
-deconv_deterministic <- pracma::deconv(c(tbl_det_prev$B, rep(0, 30)), f(0:30))
-conv(deconv_deterministic$q, f(0:30))
-length(tbl_det_prev$B)
-
-tbl_inc |>
-  mutate(deconv = deconv_deterministic$q) |>
-  pivot_longer(-t) |>
-  ggplot(aes(x = t, y = value, colour = name)) +
-  geom_line()
