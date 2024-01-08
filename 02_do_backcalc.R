@@ -104,7 +104,6 @@ prev = load_prev()
 postrat_table = load_poststrat_table()
 
 results = prev |>
-  filter(region == "1_NE") |>
   group_by(region, sex, age_group, ethnicityg, .draw) |>
   arrange(daynr, .by_group = TRUE) |>
   mutate(
@@ -138,7 +137,7 @@ poststratify(results, postrat_table, incidence, region, age_group) |>
     median_qi(val) |>
     ggplot(aes(daynr, val, ymin = .lower, ymax = .upper)) +
     geom_lineribbon(alpha = 0.3) +
-    facet_wrap(~age_group)
+    facet_grid(region~age_group)
 ########################################################################
 ## OLD FUNCTIONS (PROBABLY REMOVE)
 ########################################################################

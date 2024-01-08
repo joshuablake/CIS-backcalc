@@ -24,9 +24,9 @@ is_lower_triangular <- function(mat) {
 ## DATA FUNCTIONS
 ########################################################################
 
-base_data_dir = here::here("data/STATS18596/")
+base_data_dir = here::here("data/STATS18800/")
 load_prev = function() {
-    readRDS(file.path(base_data_dir, "predict_thin.rds")) |>
+    readRDS(file.path(base_data_dir, "predict.rds")) |>
     dplyr::left_join(
         readr::read_csv(
             file.path(base_data_dir, "groups.csv"),
@@ -45,8 +45,9 @@ group_by_strata = function(x, ...) {
   return(dplyr::group_by(x, !!!include))
 }
 
+base_poststrat_dir = here::here("data/STATS18596/")
 load_poststrat_table = function() {
-    readr::read_csv(file.path(base_data_dir, "poststrat.csv"), show_col_types = FALSE) |>
+    readr::read_csv(file.path(base_poststrat_dir, "poststrat.csv"), show_col_types = FALSE) |>
         dplyr::select(!.groups) |>
         dplyr::mutate(
             region = dplyr::case_match(

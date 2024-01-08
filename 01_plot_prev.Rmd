@@ -14,6 +14,7 @@ library(tidyr)
 source(here::here("utils.R"))
 
 prev = load_prev()
+postrat_table = load_poststrat_table()
 
 # Check all columns are grouped by default
 prev |>
@@ -35,7 +36,19 @@ prev_summary = prev |>
 prev_summary |>
   mutate(grouping = paste(ethnicityg, sex)) |>
   ggplot(aes(daynr, prev_predict, ymin = .lower, ymax = .upper, fill = grouping, colour = grouping)) +
-  geom_lineribbon(alpha = 0.5) +
+  geom_lineribbon(alpha = 0.1) +
   facet_grid(region~age_group, scales = "free_y") +
   theme(legend.position = "bottom")
+```
+
+Poststratified estimates by region and age
+
+```{r}
+prev |>
+  poststratify(postrat_table, prev_predict, region, age_group) |>
+  group_by(daynr, region, age_group) |>
+  median_qi(val) |>
+  ggplot(aes(daynr, val, ymin = .lower, ymax = .upper)) +
+  geom_lineribbon(alpha = 0.5) +
+  facet_grid(region~age_group, scales = "free_y")
 ```
