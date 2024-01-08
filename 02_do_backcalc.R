@@ -111,7 +111,7 @@ results = prev |>
   ) |>
   ungroup()
 
-readr::write_rds(
+saveRDS(
   results,
   here::here("outputs/deconv.rds")
 )
