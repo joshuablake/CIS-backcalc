@@ -37,6 +37,10 @@ load_prev = function() {
     dplyr::mutate(prev_predict = expit(.predict))
 }
 
+load_incidence = function() {
+    readRDS("outputs/deconv.rds")
+}
+
 group_by_strata = function(x, ...) {
   all_cols = rlang::exprs(region, daynr, sex, age_group, ethnicityg)
   exclude = rlang::ensyms(...)
@@ -79,7 +83,7 @@ poststratify = function(data, postrat_table, col, ...) {
     ) |>
         assertr::assert(assertr::not_na, pop) |>
         mutate(n = {{ col }} * pop) |>
-        group_by(daynr, .draw, !!!ensyms(...)) |>
+        group_by(daynr, date, .draw, !!!ensyms(...)) |>
         summarise(
             N = sum(pop),
             val = sum(n) / N,
