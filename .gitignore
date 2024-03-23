@@ -48,9 +48,6 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# Data files
-data/
-
 # Temporary plotting files
 tmp.png
 
